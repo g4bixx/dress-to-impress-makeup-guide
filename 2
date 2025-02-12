@@ -1,0 +1,46 @@
+from flask import Flask, render_template, request
+import face_recognition
+import cv2
+import os
+
+app = Flask(__name__)
+
+# Página inicial
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+# Rota para fazer upload da imagem e processá-la
+@app.route('/upload', methods=['POST'])
+def upload_image():
+    if 'file' not in request.files:
+        return 'No file part'
+    file = request.files['file']
+    if file.filename == '':
+        return 'No selected file'
+    
+    # Salvar a imagem
+    filepath = os.path.join('static', file.filename)
+    file.save(filepath)
+    
+    # Processar a imagem
+    image = face_recognition.load_image_file(filepath)
+    face_landmarks_list = face_recognition.face_landmarks(image)
+    
+    # Aqui você poderia analisar e sugerir características, por exemplo
+    suggestions = process_face_landmarks(face_landmarks_list)
+    
+    return render_template('result.html', suggestions=suggestions, image_path=filepath)
+
+# Função para processar pontos faciais e sugerir características
+def process_face_landmarks(face_landmarks_list):
+    # Exemplo básico de como você poderia mapear os pontos e sugerir características
+    suggestions = {
+        "eyes": "Olhos grandes",  # Apenas um exemplo
+        "mouth": "Boca média",
+        # Outros pontos...
+    }
+    return suggestions
+
+if __name__ == '__main__':
+    app.run(debug=True)
